@@ -65,8 +65,11 @@ final class ImapClient extends LineConnection implements MailClient
 
     public function fetchNew(int $limit): array
     {
-        $this->cmd('SELECT INBOX');
-        [$res] = $this->cmd('SEARCH UNSEEN');
+        [$selected] = $this->cmd('SELECT INBOX');
+        if (!preg_match('/\[UIDVALIDITY (\d+)\]/i', $selected, $validity)) {
+            throw new \RuntimeException('IMAP SELECT did not return UIDVALIDITY');
+        }
+        [$res] = $this->cmd('UID SEARCH UNSEEN');
         if (!preg_match('/\* SEARCH ([\d ]+)/', $res, $m)) {
             return [];
         }
@@ -74,10 +77,10 @@ final class ImapClient extends LineConnection implements MailClient
         $out = [];
         foreach ($uids as $n) {
             // BODY.PEEK keeps the message unread
-            [$r] = $this->cmd("FETCH $n (BODY.PEEK[])");
+            [$r] = $this->cmd("UID FETCH $n (BODY.PEEK[])");
             if (preg_match('/\{(\d+)\}\r\n/', $r, $mm, PREG_OFFSET_CAPTURE)) {
                 $start = $mm[0][1] + strlen($mm[0][0]);
-                $out[] = ['id' => (string)$n, 'raw' => substr($r, $start, (int)$mm[1][0])];
+                $out[] = ['id' => $validity[1] . ':' . $n, 'raw' => substr($r, $start, (int)$mm[1][0])];
             }
         }
         return $out;
