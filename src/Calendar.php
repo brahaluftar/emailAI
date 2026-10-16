@@ -16,7 +16,10 @@ final class Calendar
         $title = trim($e['title'] ?? '');
         try {
             $tz = new \DateTimeZone($this->timezone);
-            $start = new \DateTimeImmutable($e['start'] ?? '', $tz);
+            if (!isset($e['start']) || !is_string($e['start']) || trim($e['start']) === '') {
+                return false;
+            }
+            $start = new \DateTimeImmutable($e['start'], $tz);
             $end = !empty($e['end']) ? new \DateTimeImmutable($e['end'], $tz) : $start->modify('+1 hour');
         } catch (\Throwable) {
             return false;
