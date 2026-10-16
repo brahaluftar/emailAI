@@ -65,7 +65,11 @@ final class Pop3Client extends LineConnection implements MailClient
         if (!is_dir($this->draftDir) && !mkdir($this->draftDir, 0700, true)) {
             throw new \RuntimeException('Cannot create ' . $this->draftDir);
         }
-        file_put_contents($this->draftDir . '/' . date('Ymd-His') . '-' . bin2hex(random_bytes(3)) . '.eml', $raw);
+        $file = $this->draftDir . '/' . date('Ymd-His') . '-' . bin2hex(random_bytes(3)) . '.eml';
+        if (file_put_contents($file, $raw) !== strlen($raw)) {
+            @unlink($file);
+            throw new \RuntimeException('Cannot write draft: ' . $file);
+        }
     }
 
     public function close(): void
