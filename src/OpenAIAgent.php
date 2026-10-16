@@ -36,8 +36,12 @@ final class OpenAIAgent
         $resp = $this->transport ? ($this->transport)($payload) : $this->post($payload);
         $content = $resp['choices'][0]['message']['content'] ?? '';
         $data = json_decode($content, true);
-        if (!is_array($data)) {
-            throw new \RuntimeException('Agent returned invalid JSON');
+        if (!is_array($data)
+            || !isset($data['needs_reply'], $data['reply'], $data['events'])
+            || !is_bool($data['needs_reply'])
+            || !is_string($data['reply'])
+            || !is_array($data['events'])) {
+            throw new \RuntimeException('Agent returned an invalid response structure');
         }
         return [
             'needs_reply' => (bool)($data['needs_reply'] ?? true),
