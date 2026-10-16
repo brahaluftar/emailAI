@@ -75,6 +75,10 @@ final class MimeMessage
             }
             return trim($plain !== '' ? $plain : $html);
         }
+        $mediaType = strtolower(trim(explode(';', $ct, 2)[0]));
+        if (!in_array($mediaType, ['text/plain', 'text/html'], true)) {
+            return '';
+        }
         $enc = strtolower(trim($headers['content-transfer-encoding'] ?? '7bit'));
         $body = match ($enc) {
             'base64' => (string)base64_decode($body),
