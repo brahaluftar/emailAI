@@ -84,6 +84,9 @@ final class Processor
         if (!is_dir($dir)) {
             mkdir($dir, 0700, true);
         }
-        file_put_contents($this->stateFile, json_encode($state), LOCK_EX);
+        $json = json_encode($state, JSON_THROW_ON_ERROR);
+        if (file_put_contents($this->stateFile, $json, LOCK_EX) !== strlen($json)) {
+            throw new \RuntimeException('Cannot write processing state: ' . $this->stateFile);
+        }
     }
 }
