@@ -11,6 +11,9 @@ abstract class LineConnection
 
     protected function connect(string $host, int $port, string $enc): void
     {
+        if (!in_array($enc, ['ssl', 'starttls', 'none'], true)) {
+            throw new \InvalidArgumentException('Unsupported mail encryption: ' . $enc);
+        }
         $scheme = $enc === 'ssl' ? 'ssl://' : 'tcp://';
         $fp = @stream_socket_client($scheme . $host . ':' . $port, $errno, $err, 30);
         if (!$fp) {
