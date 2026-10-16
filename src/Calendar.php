@@ -46,7 +46,9 @@ final class Calendar
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-        file_put_contents($this->file, $ics, LOCK_EX);
+        if (file_put_contents($this->file, $ics, LOCK_EX) !== strlen($ics)) {
+            throw new \RuntimeException('Cannot write calendar: ' . $this->file);
+        }
         return true;
     }
 
